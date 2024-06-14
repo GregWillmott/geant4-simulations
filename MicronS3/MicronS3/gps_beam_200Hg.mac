@@ -1,0 +1,25 @@
+# Gamma beam source
+/gps/source/clear
+/gps/source/add 1
+
+/gps/particle ion
+/gps/ion 80 200 31 0.
+/gps/pos/type Beam
+
+# the incident surface is in the y-z plane
+#/gps/pos/rot1 0 1 0
+#/gps/pos/rot2 0 0 1
+
+# Shape of beam cross section
+/gps/pos/shape Circle
+/gps/pos/centre -1.9134 4.6194 -10. mm
+/gps/pos/radius 1. mm
+/gps/pos/sigma_r 0. mm
+
+# Travel along Z, 0.1 deg dispersion
+/gps/ang/rot1 0 1 0
+/gps/ang/rot2 1 0 0
+/gps/ang/type beam1d 
+/gps/ang/sigma_r 0.1 deg
+
+/gps/ene/mono 783.7 MeV

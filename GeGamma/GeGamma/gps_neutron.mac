@@ -1,0 +1,45 @@
+# Neutron beam source
+/gps/particle neutron
+/gps/pos/type Beam
+
+# the incident surface is in the y-z plane
+#/gps/pos/rot1 0 1 0
+#/gps/pos/rot2 0 0 1
+
+# Shape of beam cross section
+/gps/pos/shape Circle
+/gps/pos/centre 0. 0. 0. cm
+/gps/pos/radius 1. mm
+#/gps/pos/sigma_r 0.2 mm
+
+# Travel along Z, 0.5 deg dispersion
+/gps/ang/rot1 0 1 0
+/gps/ang/rot2 1 0 0
+/gps/ang/type beam1d 
+#/gps/ang/sigma_r 0.5 deg
+
+/gps/ene/mono 1500 keV
+
+# Histogram for neutron energy (cosmic secondaries)
+# Source: https://tc.copernicus.org/articles/15/4769/2021/
+#/gps/ene/type User
+#/gps/hist/type energy
+#/gps/hist/point 0.000000001 0.
+#/gps/hist/point 0.00000001 0.1
+#/gps/hist/point 0.00000002 0.2
+#/gps/hist/point 0.00000003 0.5
+#/gps/hist/point 0.00000004 0.8
+#/gps/hist/point 0.00000005 1.1
+#/gps/hist/point 0.00000006 1.1
+#/gps/hist/point 0.0000001 0.5
+#/gps/hist/point 0.00000015 0.2
+#/gps/hist/point 0.0000002 0.1
+#/gps/hist/point 0.01 0.1
+#/gps/hist/point 0.1 0.2
+#/gps/hist/point 1. 0.7
+#/gps/hist/point 10. 0.7
+#/gps/hist/point 50. 0.4
+#/gps/hist/point 75. 1.2
+#/gps/hist/point 100. 1.2
+#/gps/hist/point 500. 0.1
+#/gps/hist/point 1000. 0.

@@ -1,0 +1,19 @@
+/gps/source/clear
+/gps/source/add 1
+
+/gps/particle ion
+# 254 Nobelium
+/gps/ion 20 48 0
+/gps/pos/type Point
+/gps/pos/centre 0. 0. -10. mm
+/gps/energy 40. MeV
+/gps/direction 0 0 1
+/gps/pos/radius 1. mm
+/gps/pos/sigma_r 0. mm
+
+# Travel along Z, 0.1 deg dispersion
+/gps/ang/rot1 0 1 0
+/gps/ang/rot2 1 0 0
+/gps/ang/type beam1d 
+/gps/ang/sigma_r 0.1 deg
+/gps/source/list

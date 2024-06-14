@@ -1,0 +1,14 @@
+# Germanium Gamma Spec Run Macro
+
+# Setup
+/control/saveHistory
+#/run/numberOfThreads 1
+/run/verbose 0
+
+/run/initialize
+
+# General Particle Source
+/control/execute gps_neutrons_and_gammas.mac
+
+# Shoot once
+/run/beamOn 1
