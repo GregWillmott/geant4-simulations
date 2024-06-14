@@ -1,6 +1,7 @@
 ##### Geant4 simulations #####
 Simulations included:
     GeGamma
+        ### If you're new use this one as an example to learn Geant4 ###
         Germanium Gamma Spec. One germanium crystal as the detector analogue, encased in Aluminium, with a choice of macros for the General Particle Source. 
         60Co was used most often. Energy deposited is scored on the germanium.
     Gammasphere
