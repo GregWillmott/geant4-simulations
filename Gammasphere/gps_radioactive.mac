@@ -1,0 +1,12 @@
+/gps/source/clear
+/gps/source/add 1
+
+/gps/particle ion
+/gps/ion 27 60 0
+/gps/pos/type Point
+/gps/pos/centre 0. 0. 0. cm
+/gps/energy 0. keV
+/gps/direction 0 0 1
+/gps/ang/type iso
+
+/gps/source/list
