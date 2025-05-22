@@ -73,7 +73,7 @@ G4VPhysicalVolume* OurDetectorConstruction::Construct() // Function from Geant t
     // Z axis aligns the source and detector.
     
     // #########################
-    bool if_one_module = true;
+    bool if_one_module = false;
     // #########################
 
     G4double worldXY = 150*cm;
