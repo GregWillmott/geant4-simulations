@@ -1,0 +1,20 @@
+# Germanium Gamma Spec Run Macro
+
+# Setup
+/control/saveHistory
+#/run/numberOfThreads 1
+/run/verbose 0
+
+/run/initialize
+
+# Hadronic options
+/process/had/particle_hp/use_photo_evaporation true
+/process/had/particle_hp/skip_missing_isotopes true
+/process/had/particle_hp/neglect_Doppler_broadening true
+/process/had/particle_hp/do_not_adjust_final_state true
+
+# General Particle Source
+/control/execute gps_point_source1.mac
+
+# Shoot
+/run/beamOn 5000000
