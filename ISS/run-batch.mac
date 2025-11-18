@@ -1,0 +1,28 @@
+# Macro file for example B1
+# 
+# Can be run in batch, without graphic
+# or interactively: Idle> /control/execute run1.mac
+#
+# Change the default number of workers (in multi-threading mode) 
+#/run/numberOfWorkers 4
+#
+/run/initialize
+/distGen/setDistFile		61Zn-state1.dat
+/actionGen/setBeamZ		30
+/actionGen/setBeamA		61
+/actionGen/setTargetZ		1
+/actionGen/setTargetA		2
+/actionGen/setEjectileZ		1
+/actionGen/setEjectileA		1
+/actionGen/setBeamEnergy	457.5 MeV
+/actionGen/setBeamEnergyLoss	0 MeV
+/actionGen/setBeamSpotSize	0 mm
+/actionGen/setExcitationEnergy	0. MeV
+# Initialize kernel
+#
+/control/verbose 0
+/run/verbose 0
+/event/verbose 0
+/tracking/verbose 0
+#
+/run/beamOn 100000
