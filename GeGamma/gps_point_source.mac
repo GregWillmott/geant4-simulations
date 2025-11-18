@@ -1,0 +1,7 @@
+/gps/particle gamma
+/gps/pos/type Point
+/gps/pos/centre 0. 0. 0. cm
+/gps/ang/type iso
+/gps/energy 1500. keV
+
+/gps/source/list
