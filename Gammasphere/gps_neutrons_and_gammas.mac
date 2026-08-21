@@ -1,0 +1,100 @@
+# Linear energy neutron point source (10% int) + 60Co (90% int)
+/gps/source/clear
+
+# Neutrons
+#/gps/source/add 0.01
+#/gps/particle neutron
+#/gps/pos/type Beam
+
+# the incident surface is in the y-z plane
+#/gps/pos/rot1 0 1 0
+#/gps/pos/rot2 0 0 1
+
+# Shape of beam cross section
+#/gps/pos/shape Circle
+#/gps/pos/centre 0. 0. 0. cm
+#/gps/pos/radius 1. mm
+#/gps/pos/sigma_r 0.2 mm
+
+# Travel along Z, 0.5 deg dispersion
+#/gps/ang/rot1 0 1 0
+#/gps/ang/rot2 1 0 0
+#/gps/ang/type beam1d 
+#/gps/ang/sigma_r 0.5 deg
+
+#/gps/ene/mono 1500 keV
+
+# Histogram for neutron energy (cosmic secondaries)
+# Source: https://tc.copernicus.org/articles/15/4769/2021/
+#/gps/ene/type User
+#/gps/hist/type energy
+#/gps/hist/point 0.000000001 0.
+#/gps/hist/point 0.00000001 0.1
+#/gps/hist/point 0.00000002 0.2
+#/gps/hist/point 0.00000003 0.5
+#/gps/hist/point 0.00000004 0.8
+#/gps/hist/point 0.00000005 1.1
+#/gps/hist/point 0.00000006 1.1
+#/gps/hist/point 0.0000001 0.5
+#/gps/hist/point 0.00000015 0.2
+#/gps/hist/point 0.0000002 0.1
+#/gps/hist/point 0.01 0.1
+#/gps/hist/point 0.1 0.2
+#/gps/hist/point 1. 0.7
+#/gps/hist/point 10. 0.7
+#/gps/hist/point 50. 0.4
+#/gps/hist/point 75. 1.2
+#/gps/hist/point 100. 1.2
+#/gps/hist/point 500. 0.1
+#/gps/hist/point 1000. 0.
+
+# Neutron point source
+/gps/source/add 0.90
+/gps/particle neutron
+
+#/gps/pos/type Point
+#/gps/pos/centre 0. 0. 0. cm
+#/gps/ang/type iso
+#/gps/energy 1500. keV
+
+# Neutron point source
+/gps/pos/type Point
+/gps/pos/centre 0. 0. 0. cm
+/gps/ang/type iso
+/gps/ene/type Lin
+/gps/ene/min 100. keV
+/gps/ene/max 1.6 MeV
+/gps/ene/gradient 0.01
+/gps/ene/intercept 1.
+
+
+
+
+
+# Radioactive point source
+/gps/source/add 0.10
+
+# 60 Co
+#/gps/particle ion
+#/gps/ion 27 60 0
+#/gps/pos/type Point
+#/gps/pos/centre 0. 0. 0. cm
+#/gps/energy 0. keV
+#/gps/direction 0 0 1
+#/gps/ang/type iso
+
+# 17 N
+/gps/particle ion
+/gps/ion 7 16 0
+/gps/pos/type Point
+/gps/pos/centre 0. 0. 0. cm
+/gps/energy 0. keV
+/gps/direction 0 0 1
+/gps/ang/type iso
+
+# Prints out a table when running
+/gps/source/list
+
+
+
+
