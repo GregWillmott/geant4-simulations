@@ -32,6 +32,7 @@ G4VPhysicalVolume* OurDetectorConstruction::Construct() // Function from Geant t
 
     // World material = air
     G4Material* worldMat = nist->FindOrBuildMaterial("G4_AIR");
+    G4Material* vacuum = nist->FindOrBuildMaterial("G4_Galactic");
 
     // Detector case = natural aluminium
     G4double z, a, density;
@@ -80,6 +81,7 @@ G4VPhysicalVolume* OurDetectorConstruction::Construct() // Function from Geant t
     // #########################
     bool if_one_module = false;
     // #########################
+    G4double inch = 2.54*cm;
 
     G4double worldXY = 150*cm;
     G4double worldZ = 250*cm;
@@ -169,6 +171,13 @@ G4VPhysicalVolume* OurDetectorConstruction::Construct() // Function from Geant t
     G4double shellRMin = zAlCyl + AlCyl1Depth;
     G4double shellRMax = zAlCyl + AlCyl1Depth + AlCyl2Depth - AlCyl3Depth - tolerance;
     G4double rModule = rAlCyl2[1] + tolerance;
+    G4double rBeampipe = 2.*inch;
+
+    // ----- Target Chamber -----
+    G4double chamberRMin = 18.74*cm;
+    G4double chamberThickness = 1.*mm;
+    G4double rSmallBeampipe = 1.*inch;
+
 
     // ----- Transformations -----
     // Rotations. Beamline on Z axis is the reference point for theta. Phi = 0 is on the x-axis and subtends around towards y.
@@ -679,6 +688,74 @@ G4VPhysicalVolume* OurDetectorConstruction::Construct() // Function from Geant t
             solidShell = new G4SubtractionSolid("solidShell", solidShell, solidModHole, pRotMod, posMod);
         }
 
+        // Cut out upstream and downstream beampipe holes in shell
+        G4Tubs* solidBPCutout = new G4Tubs("BPHole", 0, rBeampipe, 20.*cm, 0, 360.*deg);
+        solidShell = new G4SubtractionSolid("solidShell", solidShell, solidBPCutout, 0, G4ThreeVector(0,0,(shellRMin+shellRMax)/2.));
+        solidShell = new G4SubtractionSolid("solidShell", solidShell, solidBPCutout, 0, G4ThreeVector(0,0,-(shellRMin+shellRMax)/2.));
+
+        // ----- Target chamber -----
+        G4Sphere* solidChamberSphere = new G4Sphere("Chamber", chamberRMin, chamberRMin+chamberThickness, 0, 360.*deg, 0, 260.*deg);
+        // Cut out upstream and downstream small beampipe holes in chamber
+        G4Tubs* solidSBPCutout = new G4Tubs("SBPHole", 0, rSmallBeampipe, 1.*cm, 0, 360.*deg);
+        G4SubtractionSolid* solidChamber = new G4SubtractionSolid("solidShell", solidChamberSphere, solidSBPCutout, 0, G4ThreeVector(0,0,(chamberRMin))); // 1cm is plenty of thickness to cut the hole
+        solidChamber = new G4SubtractionSolid("solidShell", solidChamber, solidSBPCutout, 0, G4ThreeVector(0,0,-(chamberRMin)));
+        
+        G4LogicalVolume* logicChamber = new G4LogicalVolume(solidChamber, natAl, "Chamber");
+        new G4PVPlacement(0, G4ThreeVector(), logicChamber, "Chamber", logicWorld, 0, 0, true);
+
+        // ----- Beam pipe -----
+        // Small beam pipe (near chamber)
+        G4double zSmallBP = (locZPlanesAlFront[1]-(chamberRMin+chamberThickness))/2.; // half way through the hex containing BGO
+        G4Tubs* solidSmallBP = new G4Tubs("SmallBP", rSmallBeampipe, rSmallBeampipe+1*mm, zSmallBP/2., 0, 360.*deg);
+        G4LogicalVolume* logicSmallBP = new G4LogicalVolume(solidSmallBP, natAl, "Beampipe");
+        new G4PVPlacement(0, G4ThreeVector(0,0,(chamberRMin+chamberThickness+zSmallBP/2.)), logicSmallBP, "Beampipe", logicWorld, 0, 0, true);
+        new G4PVPlacement(0, G4ThreeVector(0,0,-(chamberRMin+chamberThickness+zSmallBP/2.)), logicSmallBP, "Beampipe", logicWorld, 0, 0, true);
+
+        // Beam pipe (near frame)
+        G4double zBP = shellRMin-locZPlanesAlMid[1];
+        G4Tubs* solidBP = new G4Tubs("SmallBP", rBeampipe, rBeampipe+1*mm, zBP/2., 0, 360.*deg);
+        G4LogicalVolume* logicBP = new G4LogicalVolume(solidBP, natAl, "Beampipe");
+        new G4PVPlacement(0, G4ThreeVector(0,0,(shellRMin-zBP/2.)), logicBP, "Beampipe", logicWorld, 0, 0, true);
+        new G4PVPlacement(0, G4ThreeVector(0,0,-(shellRMin-zBP/2.)), logicBP, "Beampipe", logicWorld, 0, 0, true);
+
+        // Cone to bridge the gap between small and regular beam pipes
+        G4double zBPCone = locZPlanesAlMid[1]-(zSmallBP+chamberRMin+chamberThickness);
+        G4Cons* solidBPCone = new G4Cons("BPCone", rSmallBeampipe, rSmallBeampipe+1.*mm, rBeampipe, rBeampipe+1.*mm, zBPCone/2., 0, 360.*deg);
+        G4LogicalVolume* logicBPCone = new G4LogicalVolume(solidBPCone, natAl, "Beampipe");
+        new G4PVPlacement(0, G4ThreeVector(0,0,(locZPlanesAlMid[1]-zBPCone/2.)), logicBPCone, "Beampipe", logicWorld, 0, 0, true);
+        new G4PVPlacement(pConeFlip, G4ThreeVector(0,0,-(locZPlanesAlMid[1]-zBPCone/2.)), logicBPCone, "Beampipe", logicWorld, 0, 0, true);
+
+
+        // ----- Vacuum -----
+        // Inside chamber
+        G4Sphere* solidChamberVac = new G4Sphere("ChamberVac", 0, chamberRMin, 0, 360.*deg, 0, 260.*deg);
+        G4LogicalVolume* logicChamberVac = new G4LogicalVolume(solidChamberVac, vacuum, "Vacuum");
+        new G4PVPlacement(0, G4ThreeVector(), logicChamberVac, "Vacuum", logicWorld, 0, 0, true);
+
+        // Small beam pipe (near chamber)
+        G4Tubs* solidSmallBPVac = new G4Tubs("SmallBPVac", 0, rSmallBeampipe, zSmallBP/2., 0, 360.*deg);
+        G4LogicalVolume* logicSmallBPVac = new G4LogicalVolume(solidSmallBPVac, vacuum, "Vacuum");
+        new G4PVPlacement(0, G4ThreeVector(0,0,(chamberRMin+chamberThickness+zSmallBP/2.)), logicSmallBPVac, "Vacuum", logicWorld, 0, 0, true);
+        new G4PVPlacement(0, G4ThreeVector(0,0,-(chamberRMin+chamberThickness+zSmallBP/2.)), logicSmallBPVac, "Vacuum", logicWorld, 0, 0, true);
+
+        // Beam pipe (near frame)
+        G4Tubs* solidBPVac = new G4Tubs("SmallBPVac", 0, rBeampipe, zBP/2., 0, 360.*deg);
+        G4LogicalVolume* logicBPVac = new G4LogicalVolume(solidBPVac, vacuum, "Vacuum");
+        new G4PVPlacement(0, G4ThreeVector(0,0,(shellRMin-zBP/2.)), logicBPVac, "Vacuum", logicWorld, 0, 0, true);
+        new G4PVPlacement(0, G4ThreeVector(0,0,-(shellRMin-zBP/2.)), logicBPVac, "Vacuum", logicWorld, 0, 0, true);
+
+        // Cone to bridge the gap between small and regular beam pipes
+        G4Cons* solidBPConeVac = new G4Cons("BPConeVac", 0, rSmallBeampipe, rBeampipe, rBeampipe+1.*mm, zBPCone/2., 0, 360.*deg);
+        G4LogicalVolume* logicBPConeVac = new G4LogicalVolume(solidBPConeVac, vacuum, "Vacuum");
+        new G4PVPlacement(0, G4ThreeVector(0,0,(locZPlanesAlMid[1]-zBPCone/2.)), logicBPConeVac, "Vacuum", logicWorld, 0, 0, true);
+        new G4PVPlacement(pConeFlip, G4ThreeVector(0,0,-(locZPlanesAlMid[1]-zBPCone/2.)), logicBPConeVac, "Vacuum", logicWorld, 0, 0, true);
+
+
+        // ----- AGFA gate valve -----
+        G4double zValve = 0.5*inch;
+        G4Tubs* solidValve = new G4Tubs("solidValve", 0, 6.*inch, zValve/2., 0, 360.*deg);
+        G4LogicalVolume* logicValve = new G4LogicalVolume(solidValve, natAl, "Valve");
+        new G4PVPlacement(0, G4ThreeVector(0,0,(1.*m+zValve/2.)), logicValve, "Valve", logicWorld, 0, 0, true);
 
         // Iterate over modules
         for(int i = 1; i < nModules; i++){ //i:1 to 109 inclusive

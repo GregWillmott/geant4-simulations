@@ -5,7 +5,7 @@
 # Use these open statements to open selected visualization
 #
 # Use this open statement to create an OpenGL view:
-/vis/open OGL 600x600-0+0
+/vis/open OGLI 600x600-0+0
 #
 # Use this open statement to create an OpenInventor view:
 #/vis/open OI
@@ -42,7 +42,8 @@
 # Specify style (surface, wireframe, auxiliary edges,...)
 /vis/viewer/set/style surface
 # Inverting the cutawayplane ruins the XYZ marker
-#/vis/viewer/addCutawayPlane 0 0 0 cm 1 0 0
+/vis/viewer/addCutawayPlane -100 0 0 mm 1 0 0
+#/vis/viewer/set/sectionPlane on 0.1 0 0 mm 1 0 0
 /vis/viewer/set/auxiliaryEdge true
 /vis/viewer/set/lineSegmentsPerCircle 20
 #
@@ -122,13 +123,25 @@
 /vis/touchable/set/colour 0.15 0.15 0.35 1.
 
 /vis/set/touchable World 0 GeCrystal_turnedOff 0
-/vis/touchable/set/colour 0.35 0.15 0.15 1.
+/vis/touchable/set/colour 0.45 0.15 0.15 1.
 
 /vis/set/touchable World 0 GeDead 0
 /vis/touchable/set/colour 0.024 0.51 0.0078 1.
 
 /vis/set/touchable World 0 Electronics 0
 /vis/touchable/set/colour 0.1 0.9 0.3 1.
+
+/vis/set/touchable World 0 Chamber 0
+/vis/touchable/set/colour 0.6 0.6 0.6 1.
+
+/vis/set/touchable World 0 Beampipe 0
+/vis/touchable/set/colour 0.3 0.3 0.3 1.
+
+/vis/set/touchable World 0 Vacuum 0
+/vis/touchable/set/colour 1. 0.1 0.1 0.
+
+/vis/set/touchable World 0 Valve 0
+/vis/touchable/set/colour 0. 1. 1. 1.
 
 /vis/set/touchable World 0 Collimator 0
 /vis/touchable/set/colour 1 0 0 1.
