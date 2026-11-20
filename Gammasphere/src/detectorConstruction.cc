@@ -72,6 +72,11 @@ G4VPhysicalVolume* OurDetectorConstruction::Construct() // Function from Geant t
     BGO->AddElement(el_Ge, 3);
     BGO->AddElement(el_O, 12);
 
+    // Liquid nitrogen
+    G4Element* el_N = new G4Element("Nitrogen", "N", 7., 14.007*g/mole);
+    G4Material* ln2 = new G4Material("ln2", 0.8*g/cm3, 1);
+    ln2->AddElement(el_N, 1);
+
     // --------------------
     // Parameters
     // --------------------
@@ -114,9 +119,12 @@ G4VPhysicalVolume* OurDetectorConstruction::Construct() // Function from Geant t
     // ----- Copper -----
     G4double plateDepth = 1.*cm;
     G4double rElec1 = 3.5*cm;
-    G4double rElec2 = 4.5*cm;
-    G4double elecDepth1 = 19*cm;
-    G4double elecDepth2 = 4.*cm;
+    G4double rElec2 = 5.*cm;
+    G4double rElec3 = 5.*cm;
+
+    // ----- 'Electronics' -----
+    G4double elecDepth1 = 36.*cm;
+    G4double elecDepth2 = 8.*cm;
     G4double zBGOtoElec = 0.5*cm;
 
     // ----- BGO -----
@@ -147,16 +155,16 @@ G4VPhysicalVolume* OurDetectorConstruction::Construct() // Function from Geant t
     G4double locZPlanesAlFront[] = {zFrontFace-zColl, zFrontFace+BGOFrontDepth+BGOMidConDepth+BGOMidCylDepth};
     // Mid hex
     G4double zAlMid = zFrontFace+BGOFrontDepth+BGOMidConDepth+BGOMidCylDepth;
-    G4double locZPlanesAlMid[] = {zAlMid, zAlMid+0.5*cm, zAlMid+20.*cm};
+    G4double locZPlanesAlMid[] = {zAlMid, zAlMid+0.5*cm, zAlMid+25.*cm};
     G4double rOuterAlMid[] = {rOuterAlFront[1], rOuterAlFront[1], rOuterAlFront[1]};
-    G4double rInnerAlMid[] = {rOuterAlFront[1], rOuterAlFront[1]-1.*cm, rOuterAlFront[1]-1.*cm};
+    G4double rInnerAlMid[] = {rOuterAlFront[1], rOuterAlFront[1]-2.*mm, rOuterAlFront[1]-2.*mm};
     // Rear cylinders
     G4double zAlCyl = locZPlanesAlMid[2];
-    G4double AlCyl1Depth = 2.54*cm;
+    G4double AlCyl1Depth = 4.*mm;
     G4double AlCyl2Depth = 12.54*cm;
     G4double AlCyl3Depth = 2.54*cm;
     G4double rAlCyl1[] = {((6.328/1.1547)*cm+tolerance), ((6.328/1.1547)*cm+tolerance+(1*2.54)*cm)};
-    G4double rAlCyl2[] = {((6.328/1.1547)*cm+tolerance+(0.5*2.54)*cm), ((6.328/1.1547)*cm+tolerance+(1*2.54)*cm)};
+    G4double rAlCyl2[] = {((6.328/1.1547)*cm+tolerance+(1.*2.54)*cm-4.*mm), ((6.328/1.1547)*cm+tolerance+(1*2.54)*cm)};
     G4double rAlCyl3[] = {((6.328/1.1547)*cm+tolerance+(1*2.54)*cm), ((6.328/1.1547)*cm+tolerance+(3*2.54)*cm-(3.*mm))};
     // Tube
     G4double rAlTube[] = {0.9*cm, 1.*cm};
@@ -169,14 +177,20 @@ G4VPhysicalVolume* OurDetectorConstruction::Construct() // Function from Geant t
 
     // ----- Shell -----
     G4double shellRMin = zAlCyl + AlCyl1Depth;
+    std::cout << shellRMin << std::endl;
     G4double shellRMax = zAlCyl + AlCyl1Depth + AlCyl2Depth - AlCyl3Depth - tolerance;
     G4double rModule = rAlCyl2[1] + tolerance;
     G4double rBeampipe = 2.*inch;
 
     // ----- Target Chamber -----
     G4double chamberRMin = 18.74*cm;
-    G4double chamberThickness = 1.*mm;
+    G4double chamberThickness = 2.*mm;
     G4double rSmallBeampipe = 1.*inch;
+
+    // ----- Cryostat -----
+    G4double rCryo = 8.*cm;
+    G4double cryoThickness = 2.*mm;
+    G4double zCryo = 25.*cm;
 
 
     // ----- Transformations -----
@@ -506,6 +520,7 @@ G4VPhysicalVolume* OurDetectorConstruction::Construct() // Function from Geant t
     // Electronics
     G4Tubs* CuElec1 = new G4Tubs("CuElec1", 0, rElec1, elecDepth1/2., 0, 360.*deg);
     G4Tubs* CuElec2 = new G4Tubs("CuElec2", 0, rElec2, elecDepth2/2., 0, 360.*deg);
+    G4Tubs* CuElec3 = new G4Tubs("CuElec3", 0, rElec3, elecDepth2/2., 0, 360.*deg);
     // Put together
     G4MultiUnion* solidCu = new G4MultiUnion("solidCu"); // Plate
     solidCu->AddNode(CuPlate, G4Transform3D(G4RotationMatrix(), G4ThreeVector(0, 0, (zGeFront+GeDepthDL+GeDepth1+GeDepth2+(plateDepth*0.25)) ) ));
@@ -514,7 +529,8 @@ G4VPhysicalVolume* OurDetectorConstruction::Construct() // Function from Geant t
 
     G4MultiUnion* solidElectronics = new G4MultiUnion("solidElectronics"); // 'Electronics'
     solidElectronics->AddNode(CuElec1, G4Transform3D(G4RotationMatrix(), G4ThreeVector(0, 0, (zBGOCylFront+BGOCylDepth+zBGOtoElec+(elecDepth1/2.)) ) ));
-    solidElectronics->AddNode(CuElec2, G4Transform3D(G4RotationMatrix(), G4ThreeVector(0, 0, (zBGOCylFront+BGOCylDepth+zBGOtoElec+elecDepth1/1.5+(elecDepth2/2.)) ) ));
+    solidElectronics->AddNode(CuElec2, G4Transform3D(G4RotationMatrix(), G4ThreeVector(0, 0, (zBGOCylFront+BGOCylDepth+zBGOtoElec+elecDepth1/1.35+(elecDepth2/2.)) ) ));
+    solidElectronics->AddNode(CuElec3, G4Transform3D(G4RotationMatrix(), G4ThreeVector(0, 0, (zBGOCylFront+BGOCylDepth+zBGOtoElec+(elecDepth2/2.)) ) )); // PMT for BGO
     solidElectronics->Voxelize();
     
     G4LogicalVolume* logicCu = new G4LogicalVolume(solidCu, natCu, "Cu");
@@ -563,14 +579,18 @@ G4VPhysicalVolume* OurDetectorConstruction::Construct() // Function from Geant t
     G4Tubs* solidAlRearCyl1 = new G4Tubs("AlCyl1", rAlCyl1[0], rAlCyl1[1], AlCyl1Depth/2., 0, 360.*deg);
     G4Tubs* solidAlRearCyl2 = new G4Tubs("AlCyl2", rAlCyl2[0], rAlCyl2[1], AlCyl2Depth/2., 0, 360.*deg);
     G4Tubs* solidAlRearCyl3 = new G4Tubs("AlCyl3", rAlCyl3[0], rAlCyl3[1], AlCyl3Depth/2., 0, 360.*deg);
+    // Cryostat
+    G4Tubs* solidCryo = new G4Tubs("AlCryo", 0, rCryo, zCryo/2., 0, 360.*deg);
+    G4Tubs* solidCryoVoid = new G4Tubs("AlCryoVoid", 0, rCryo-cryoThickness, (zCryo/2.)-cryoThickness, 0, 360.*deg);
+    G4SubtractionSolid* solidCryo2 = new G4SubtractionSolid("AlCryo2", solidCryo, solidCryoVoid, 0, G4ThreeVector()); // hollow out the cylinder leaving 2mm all around
     // Tube
     G4Tubs* solidAlTube = new G4Tubs("AlTube", rAlTube[0], rAlTube[1], AlTubeDepth/2., 0, 360.*deg);
     G4Tubs* solidAlCap = new G4Tubs("AlCap", 0, rInnerBGOMid[1], AlCapDepth/2., 0, 360.*deg);
     // End cap for Ge encapsulation
     G4Tubs* solidAlFrontCap = new G4Tubs("AlFrontCap", 0, GeRadOuter1+EncapThickness, AlCapDepth/2., 0, 360.*deg);
     // Sides for Ge encapsulation
-    G4Cons* solidAlFrontCone = new G4Cons("AlFrontCone", GeRadOuter1, GeRadOuter1+EncapThickness, GeRadOuter2, GeRadOuter2+EncapThickness, (GeDepth1+GeDepthDL)/2., 0, 360.*deg);
-    G4Tubs* solidAlSideEncap = new G4Tubs("AlSideEncap", GeRadOuter2, GeRadOuter2+EncapThickness, GeDepth2/2., 0., 360.*deg);
+    G4Cons* solidAlFrontCone = new G4Cons("AlFrontCone", GeRadOuter1+tolerance, GeRadOuter1+EncapThickness, GeRadOuter2+tolerance, GeRadOuter2+EncapThickness, (GeDepth1+GeDepthDL)/2., 0, 360.*deg);
+    G4Tubs* solidAlSideEncap = new G4Tubs("AlSideEncap", GeRadOuter2+tolerance, GeRadOuter2+EncapThickness, GeDepth2/2., 0., 360.*deg);
     // Put together
     G4MultiUnion* solidAl = new G4MultiUnion("Al");
     solidAl->AddNode(solidAlFrontHex, G4Transform3D());
@@ -578,9 +598,10 @@ G4VPhysicalVolume* OurDetectorConstruction::Construct() // Function from Geant t
     solidAl->AddNode(solidAlRearCyl1, G4Transform3D(G4RotationMatrix(), G4ThreeVector(0, 0, zAlCyl+(AlCyl1Depth/2.)) ));
     solidAl->AddNode(solidAlRearCyl2, G4Transform3D(G4RotationMatrix(), G4ThreeVector(0, 0, zAlCyl+AlCyl1Depth+(AlCyl2Depth/2.)) ));
     solidAl->AddNode(solidAlRearCyl3, G4Transform3D(G4RotationMatrix(), G4ThreeVector(0, 0, zAlCyl+AlCyl1Depth+AlCyl2Depth-(AlCyl3Depth/2.)) ));
+    solidAl->AddNode(solidCryo2, G4Transform3D(G4RotationMatrix(), G4ThreeVector(0, 0, zAlCyl+AlCyl1Depth+AlCyl2Depth+(zCryo/2.)) ) );
     solidAl->AddNode(solidAlTube, G4Transform3D(G4RotationMatrix(), G4ThreeVector(-3.5*cm+rAlTube[1], 0, zGeFront+GeDepth1+GeDepth2+2.0*cm+(AlTubeDepth/2.)) ));
     solidAl->AddNode(solidAlCap, G4Transform3D(G4RotationMatrix(), G4ThreeVector(0, 0, zGeFront+GeDepth1+GeDepth2+2.0*cm+(AlCapDepth/2.)) ));
-    solidAl->AddNode(solidAlFrontCap, G4Transform3D(G4RotationMatrix(), G4ThreeVector(0, 0, zGeFront-0.1*mm-AlCapDepth/2. )));
+    solidAl->AddNode(solidAlFrontCap, G4Transform3D(G4RotationMatrix(), G4ThreeVector(0, 0, zGeFront-tolerance-AlCapDepth/2. )));
     solidAl->AddNode(solidAlFrontCone, G4Transform3D(G4RotationMatrix(), G4ThreeVector(0, 0, zGeFront+(GeDepthDL+GeDepth1)/2.)));
     solidAl->AddNode(solidAlSideEncap, G4Transform3D(G4RotationMatrix(), G4ThreeVector(0, 0, zGeFront+(GeDepthDL+GeDepth1)+GeDepth2/2.))); // crystal front + dead layer cone + live cone + half the main cylinder
     solidAl->Voxelize();
@@ -588,9 +609,19 @@ G4VPhysicalVolume* OurDetectorConstruction::Construct() // Function from Geant t
     if(if_one_module){
         new G4PVPlacement(0, G4ThreeVector(), logicAl, "Al", logicWorld, 0, 0, true);
     }
-    // else{
-    //     new G4PVPlacement(pRotMod1, G4ThreeVector(), logicAl, "Al", logicWorld, 0, 0, true);
-    // }
+
+    // LN2
+    // Normal trick to use multiunion to make rotations easier later on
+    G4Tubs* solidLN = new G4Tubs("LN2", 0, rCryo-cryoThickness-tolerance, ((zCryo/2.)-cryoThickness)/2., 0, 360.*deg);
+    G4MultiUnion* solidLN2 = new G4MultiUnion("solidLN2");
+    solidLN2->AddNode(solidLN, G4Transform3D(G4RotationMatrix(), G4ThreeVector(0, 0, zAlCyl+AlCyl1Depth+AlCyl2Depth+cryoThickness/2.+(zCryo*0.251)) ));
+    solidLN2->AddNode(solidLN, G4Transform3D(G4RotationMatrix(), G4ThreeVector(0, 0, zAlCyl+AlCyl1Depth+AlCyl2Depth-cryoThickness/2.+(zCryo*0.75)) ));
+    solidLN2->Voxelize();
+    G4LogicalVolume* logicLN = new G4LogicalVolume(solidLN2, ln2, "LN2");
+    if(if_one_module){
+        new G4PVPlacement(0, G4ThreeVector(), logicLN, "LN2", logicWorld, 0, 0, true);
+    }
+
 
     // ---------------------------------------------------------------------------------------------------
     // Construct spherical shell and place modules at corresponding port angles if if_one_module is false
@@ -627,6 +658,8 @@ G4VPhysicalVolume* OurDetectorConstruction::Construct() // Function from Geant t
         new G4PVPlacement(pRotMod, G4ThreeVector(), logicElectronics, "Electronics", logicWorld, 0, 0, true);
         // Collimator
         new G4PVPlacement(pRotMod, G4ThreeVector(), logicColl, "Collimator", logicWorld, 0, 0, true);
+        // Cryostat LN2
+        new G4PVPlacement(pRotMod, G4ThreeVector(), logicLN, "LN2", logicWorld, 0, 0, true);
 
         // Rest of cutouts in shell
         for(int i = 1; i < nModules; i++){ // i:1 to 109 inclusive
@@ -689,7 +722,7 @@ G4VPhysicalVolume* OurDetectorConstruction::Construct() // Function from Geant t
         }
 
         // Cut out upstream and downstream beampipe holes in shell
-        G4Tubs* solidBPCutout = new G4Tubs("BPHole", 0, rBeampipe, 20.*cm, 0, 360.*deg);
+        G4Tubs* solidBPCutout = new G4Tubs("BPHole", 0, rBeampipe+chamberThickness, 20.*cm, 0, 360.*deg);
         solidShell = new G4SubtractionSolid("solidShell", solidShell, solidBPCutout, 0, G4ThreeVector(0,0,(shellRMin+shellRMax)/2.));
         solidShell = new G4SubtractionSolid("solidShell", solidShell, solidBPCutout, 0, G4ThreeVector(0,0,-(shellRMin+shellRMax)/2.));
 
@@ -708,15 +741,15 @@ G4VPhysicalVolume* OurDetectorConstruction::Construct() // Function from Geant t
         G4double zSmallBP = (locZPlanesAlFront[1]-(chamberRMin+chamberThickness))/2.; // half way through the hex containing BGO
         G4Tubs* solidSmallBP = new G4Tubs("SmallBP", rSmallBeampipe, rSmallBeampipe+1*mm, zSmallBP/2., 0, 360.*deg);
         G4LogicalVolume* logicSmallBP = new G4LogicalVolume(solidSmallBP, natAl, "Beampipe");
-        new G4PVPlacement(0, G4ThreeVector(0,0,(chamberRMin+chamberThickness+zSmallBP/2.)), logicSmallBP, "Beampipe", logicWorld, 0, 0, true);
-        new G4PVPlacement(0, G4ThreeVector(0,0,-(chamberRMin+chamberThickness+zSmallBP/2.)), logicSmallBP, "Beampipe", logicWorld, 0, 0, true);
+        new G4PVPlacement(0, G4ThreeVector(0,0,(chamberRMin+chamberThickness+(zSmallBP/2.))), logicSmallBP, "Beampipe", logicWorld, 0, 0, true);
+        new G4PVPlacement(0, G4ThreeVector(0,0,-(chamberRMin+chamberThickness+(zSmallBP/2.))), logicSmallBP, "Beampipe", logicWorld, 0, 0, true);
 
         // Beam pipe (near frame)
         G4double zBP = shellRMin-locZPlanesAlMid[1];
-        G4Tubs* solidBP = new G4Tubs("SmallBP", rBeampipe, rBeampipe+1*mm, zBP/2., 0, 360.*deg);
+        G4Tubs* solidBP = new G4Tubs("SmallBP", rBeampipe, rBeampipe+1*mm, zBP, 0, 360.*deg);
         G4LogicalVolume* logicBP = new G4LogicalVolume(solidBP, natAl, "Beampipe");
-        new G4PVPlacement(0, G4ThreeVector(0,0,(shellRMin-zBP/2.)), logicBP, "Beampipe", logicWorld, 0, 0, true);
-        new G4PVPlacement(0, G4ThreeVector(0,0,-(shellRMin-zBP/2.)), logicBP, "Beampipe", logicWorld, 0, 0, true);
+        new G4PVPlacement(0, G4ThreeVector(0,0,(shellRMin)), logicBP, "Beampipe", logicWorld, 0, 0, true);
+        new G4PVPlacement(0, G4ThreeVector(0,0,-(shellRMin)), logicBP, "Beampipe", logicWorld, 0, 0, true);
 
         // Cone to bridge the gap between small and regular beam pipes
         G4double zBPCone = locZPlanesAlMid[1]-(zSmallBP+chamberRMin+chamberThickness);
@@ -728,28 +761,40 @@ G4VPhysicalVolume* OurDetectorConstruction::Construct() // Function from Geant t
 
         // ----- Vacuum -----
         // Inside chamber
-        G4Sphere* solidChamberVac = new G4Sphere("ChamberVac", 0, chamberRMin, 0, 360.*deg, 0, 260.*deg);
-        G4LogicalVolume* logicChamberVac = new G4LogicalVolume(solidChamberVac, vacuum, "Vacuum");
-        new G4PVPlacement(0, G4ThreeVector(), logicChamberVac, "Vacuum", logicWorld, 0, 0, true);
+        G4Sphere* solidChamberVac = new G4Sphere("ChamberVac", 0, chamberRMin, 0, 360.*deg, 0, 180.*deg);
+        // G4LogicalVolume* logicChamberVac = new G4LogicalVolume(solidChamberVac, vacuum, "Vacuum");
+        // new G4PVPlacement(0, G4ThreeVector(), logicChamberVac, "Vacuum", logicWorld, 0, 0, true);
 
         // Small beam pipe (near chamber)
-        G4Tubs* solidSmallBPVac = new G4Tubs("SmallBPVac", 0, rSmallBeampipe, zSmallBP/2., 0, 360.*deg);
-        G4LogicalVolume* logicSmallBPVac = new G4LogicalVolume(solidSmallBPVac, vacuum, "Vacuum");
-        new G4PVPlacement(0, G4ThreeVector(0,0,(chamberRMin+chamberThickness+zSmallBP/2.)), logicSmallBPVac, "Vacuum", logicWorld, 0, 0, true);
-        new G4PVPlacement(0, G4ThreeVector(0,0,-(chamberRMin+chamberThickness+zSmallBP/2.)), logicSmallBPVac, "Vacuum", logicWorld, 0, 0, true);
+        G4Tubs* solidSmallBPVac = new G4Tubs("SmallBPVac", 0, rSmallBeampipe-tolerance, 2.*cm+zSmallBP/2., 0, 360.*deg);
+        // G4LogicalVolume* logicSmallBPVac = new G4LogicalVolume(solidSmallBPVac, vacuum, "Vacuum");
+        // new G4PVPlacement(0, G4ThreeVector(0,0,(chamberRMin+chamberThickness+zSmallBP/2.)), logicSmallBPVac, "Vacuum", logicWorld, 0, 0, true);
+        // new G4PVPlacement(0, G4ThreeVector(0,0,-(chamberRMin+chamberThickness+zSmallBP/2.)), logicSmallBPVac, "Vacuum", logicWorld, 0, 0, true);
 
         // Beam pipe (near frame)
-        G4Tubs* solidBPVac = new G4Tubs("SmallBPVac", 0, rBeampipe, zBP/2., 0, 360.*deg);
-        G4LogicalVolume* logicBPVac = new G4LogicalVolume(solidBPVac, vacuum, "Vacuum");
-        new G4PVPlacement(0, G4ThreeVector(0,0,(shellRMin-zBP/2.)), logicBPVac, "Vacuum", logicWorld, 0, 0, true);
-        new G4PVPlacement(0, G4ThreeVector(0,0,-(shellRMin-zBP/2.)), logicBPVac, "Vacuum", logicWorld, 0, 0, true);
+        G4Tubs* solidBPVac = new G4Tubs("SmallBPVac", 0, rBeampipe-tolerance, zBP, 0, 360.*deg);
+        // G4LogicalVolume* logicBPVac = new G4LogicalVolume(solidBPVac, vacuum, "Vacuum");
+        // new G4PVPlacement(0, G4ThreeVector(0,0,(shellRMin)), logicBPVac, "Vacuum", logicWorld, 0, 0, true);
+        // new G4PVPlacement(0, G4ThreeVector(0,0,-(shellRMin)), logicBPVac, "Vacuum", logicWorld, 0, 0, true);
 
         // Cone to bridge the gap between small and regular beam pipes
-        G4Cons* solidBPConeVac = new G4Cons("BPConeVac", 0, rSmallBeampipe, rBeampipe, rBeampipe+1.*mm, zBPCone/2., 0, 360.*deg);
-        G4LogicalVolume* logicBPConeVac = new G4LogicalVolume(solidBPConeVac, vacuum, "Vacuum");
-        new G4PVPlacement(0, G4ThreeVector(0,0,(locZPlanesAlMid[1]-zBPCone/2.)), logicBPConeVac, "Vacuum", logicWorld, 0, 0, true);
-        new G4PVPlacement(pConeFlip, G4ThreeVector(0,0,-(locZPlanesAlMid[1]-zBPCone/2.)), logicBPConeVac, "Vacuum", logicWorld, 0, 0, true);
+        G4Cons* solidBPConeVac = new G4Cons("BPConeVac", 0, rSmallBeampipe-tolerance, 0, rBeampipe-tolerance, zBPCone/2., 0, 360.*deg);
+        // G4LogicalVolume* logicBPConeVac = new G4LogicalVolume(solidBPConeVac, vacuum, "Vacuum");
+        // new G4PVPlacement(0, G4ThreeVector(0,0,(locZPlanesAlMid[1]-zBPCone/2.)), logicBPConeVac, "Vacuum", logicWorld, 0, 0, true);
+        // new G4PVPlacement(pConeFlip, G4ThreeVector(0,0,-(locZPlanesAlMid[1]-zBPCone/2.)), logicBPConeVac, "Vacuum", logicWorld, 0, 0, true);
 
+        G4MultiUnion* solidVac = new G4MultiUnion("solidVac");
+        solidVac->AddNode(solidChamberVac, G4Transform3D(G4RotationMatrix(), G4ThreeVector()));
+        solidVac->AddNode(solidSmallBPVac, G4Transform3D(G4RotationMatrix(), G4ThreeVector(0,0,(chamberRMin+chamberThickness+zSmallBP/2.)) ));
+        solidVac->AddNode(solidSmallBPVac, G4Transform3D(G4RotationMatrix(), G4ThreeVector(0,0,-(chamberRMin+chamberThickness+zSmallBP/2.)) ));
+        solidVac->AddNode(solidBPVac, G4Transform3D(G4RotationMatrix(), G4ThreeVector(0,0,(shellRMin)) ) );
+        solidVac->AddNode(solidBPVac, G4Transform3D(G4RotationMatrix(), G4ThreeVector(0,0,-(shellRMin)) ) );
+        solidVac->AddNode(solidBPConeVac, G4Transform3D(G4RotationMatrix(), G4ThreeVector(0,0,(locZPlanesAlMid[1]-zBPCone/2.)) ) );
+        solidVac->AddNode(solidBPConeVac, G4Transform3D(G4RotationMatrix(0,180.*deg,0), G4ThreeVector(0,0,-(locZPlanesAlMid[1]-zBPCone/2.)) ) );
+        solidVac->Voxelize();
+
+        G4LogicalVolume* logicVac = new G4LogicalVolume(solidVac, vacuum, "Vacuum");
+        new G4PVPlacement(0, G4ThreeVector(), logicVac, "Vacuum", logicWorld, 0, 0, true);
 
         // ----- AGFA gate valve -----
         G4double zValve = 0.5*inch;
@@ -841,6 +886,8 @@ G4VPhysicalVolume* OurDetectorConstruction::Construct() // Function from Geant t
             new G4PVPlacement(pRotMod, G4ThreeVector(), logicElectronics, "Electronics", logicWorld, 0, 0, true);
             // Collimator
             new G4PVPlacement(pRotMod, G4ThreeVector(), logicColl, "Collimator", logicWorld, 0, 0, true);
+            // Cryostat LN2
+            new G4PVPlacement(pRotMod, G4ThreeVector(), logicLN, "LN2", logicWorld, 0, 0, true);
         }
 
         // Shell placement
